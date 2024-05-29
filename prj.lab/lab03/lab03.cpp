@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
     
     CommandLineParser parser(argc, argv,
         "{@inputImagePath    | ../prj.lab/lab03/input/color_pic.jpg     | input image path}"
-        "{quantile           | 0.15    | quantile}"
+        "{quantile           | 0.05    | quantile}"
     );
     
     String inputImagePath = parser.get<String>("@inputImagePath");

@@ -12,9 +12,9 @@ struct Circle {
     double x, y, r;
 };
 
-int minRadius = 6;
-int maxRadius = 14;
-int numCircles = 5;
+int minRadius = 8;
+int maxRadius = 20;
+int numCircles = 7;
 int minContrast = 60;
 int maxContrast = 255;
 int stddev = 25;
@@ -48,6 +48,7 @@ Mat generateImageClear() {
             squares[i * numCircles + j].copyTo(squareROI);
         }
     }
+    imwrite("../prj.lab/lab04/input/based.png", based);
     return based;
 }
 
@@ -113,19 +114,18 @@ Mat generateImage() {
     return image;
 }
 
-// Function to calculate the intersection area of two circles
 double circleIntersectionArea(Circle c1, Circle c2) {
     double d = sqrt((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y));
     if (d >= c1.r + c2.r) {
-        return 0.0; // Circles do not overlap
+        return 0.0; 
     } else if (d <= abs(c1.r - c2.r)) {
         double r_min = min(c1.r, c2.r);
-        return M_PI * r_min * r_min; // One circle is completely inside the other
+        return M_PI * r_min * r_min; 
     } else {
         double a1 = c1.r * c1.r * acos((d * d + c1.r * c1.r - c2.r * c2.r) / (2 * d * c1.r));
         double a2 = c2.r * c2.r * acos((d * d + c2.r * c2.r - c1.r * c1.r) / (2 * d * c2.r));
         double a3 = 0.5 * sqrt((-d + c1.r + c2.r) * (d + c1.r - c2.r) * (d - c1.r + c2.r) * (d + c1.r + c2.r));
-        return a1 + a2 - a3; // Intersection area
+        return a1 + a2 - a3; 
     }
 }
 
@@ -158,14 +158,18 @@ void detectCircles(const Mat& image) {
 
     if (ksize % 2 == 0) ksize++;
     cv::GaussianBlur(image, no_noise, cv::Size(ksize, ksize), 0);
+    imwrite("../prj.lab/lab04/output/bluredImage.png", no_noise);
+
 
     adaptiveThreshold(no_noise, binary, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 33, 0);
+    imwrite("../prj.lab/lab04/output/binImage.png", binary);
 
     Mat labels, stats, centroids;
     int numLabels = connectedComponentsWithStats(binary, labels, stats, centroids);
 
     Mat result;
     Mat detections(numCircles * 50, numCircles * 50, CV_8UC1, Scalar(0));
+
     cvtColor(image, result, COLOR_GRAY2BGR);
 
     for (int i = 1; i < numLabels; ++i) {
@@ -176,10 +180,10 @@ void detectCircles(const Mat& image) {
         int y = stats.at<int>(i, CC_STAT_TOP) + stats.at<int>(i, CC_STAT_HEIGHT) / 2;
         int radius = (stats.at<int>(i, CC_STAT_WIDTH) + stats.at<int>(i, CC_STAT_HEIGHT)) / 4;
         x_y_r_detection.push_back({x, y, radius});
-        circle(detections, Point(x, y), radius, 255, -1);
+        circle(detections, Point(x, y), radius, 255, 2);
         circle(result, Point(x, y), radius, Scalar(0, 0, 255), 2);
     }
-
+    imwrite("../prj.lab/lab04/output/stats_detections.png", detections);
     imwrite("../prj.lab/lab04/output/detections.png", result);
 
     FileStorage fs("../prj.lab/lab04/output/ground_detections.json", cv::FileStorage::WRITE | cv::FileStorage::FORMAT_JSON);
@@ -217,16 +221,15 @@ void detectCircles(const Mat& image) {
 int main() {
     Mat image = generateImage();
     imwrite("generated_image.png", image);
-
+    generateImageClear();
     detectCircles(image);
 
-    //int tp = 0,fp = 0,fn = 0;
     std::tuple<int, int, int> ans = calculateMetrics(x_y_r, x_y_r_detection, 0.4);
     double acc = (double)get<0>(ans) / (double)(get<0>(ans) + get<1>(ans) + get<2>(ans));
     cout << "True Positives: " << get<0>(ans) << "\n";
     cout << "False Positives: " << get<1>(ans) << "\n";
     cout << "False Negatives: " << get<2>(ans) << "\n";
-    cout << "False Negatives: " << acc << "\n";
+    cout << "tp/sum: " << acc << "\n";
 
     return 0;
 }
