@@ -17,3 +17,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenCV CONFIG REQUIRED)
 
 add_subdirectory(prj.lab)
+add_subdirectory(prj.cw)
