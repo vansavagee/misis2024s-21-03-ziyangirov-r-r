@@ -25,3 +25,13 @@ endif()
 
 # Связывание с библиотекой OpenCV
 target_link_libraries(ImageRecognition ${OpenCV_LIB})
+
+# Указание пути к DLL-файлу
+set(OpenCV_DLL "${CMAKE_SOURCE_DIR}/libs/bin/opencv_world490.dll")
+
+# Добавление секции установки
+install(TARGETS ImageRecognition
+        RUNTIME DESTINATION bin)
+
+# Копирование DLL-файла в папку установки
+install(FILES ${OpenCV_DLL} DESTINATION bin)
